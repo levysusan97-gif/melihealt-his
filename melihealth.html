@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MeliHealth HIS</title>
+<style>
+:root{--bg:#f4f7f9;--card:#fff;--tx:#1b2733;--mut:#5b6b7a;--bd:#dde3ea;--ac:#0f766e;--ac2:#e3f3f1;--ac-tx:#fff;--rojo:#b42318;--rojo2:#fde8e6;--verde:#067647;--verde2:#dcf5e7;--azul:#175cd3;--azul2:#e2ecfd;--sombra:0 1px 3px rgba(16,24,40,.08)}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1318;--card:#151d25;--tx:#e6ecf1;--mut:#97a7b4;--bd:#2a3744;--ac:#2dd4bf;--ac2:#12302d;--ac-tx:#06201d;--rojo:#fda29b;--rojo2:#3a1613;--verde:#75e0a7;--verde2:#0f2e1f;--azul:#84adff;--azul2:#14264a;--sombra:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{margin:0 0 .5rem;line-height:1.25}h1{font-size:1.4rem}h2{font-size:1.15rem}h3{font-size:1rem}
+a{color:var(--ac)}[hidden]{display:none!important}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:1.1rem 1.25rem;box-shadow:var(--sombra);margin-bottom:1rem}
+.mut{color:var(--mut)}.pill{display:inline-block;background:var(--ac2);color:var(--ac);border-radius:999px;padding:.1rem .65rem;font-size:.8rem;font-weight:600;margin-left:.5rem}
+.badge{display:inline-block;border-radius:6px;padding:.05rem .5rem;font-size:.8rem;font-weight:600}
+.b-Agendada{background:var(--azul2);color:var(--azul)}.b-Atendida{background:var(--verde2);color:var(--verde)}.b-Cancelada{background:var(--rojo2);color:var(--rojo)}
+.b-ver{background:var(--azul2);color:var(--azul)}.b-escribir{background:var(--verde2);color:var(--verde)}
+button,.btn{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:.45rem .9rem;text-decoration:none;display:inline-block}
+button.pri{background:var(--ac);color:var(--ac-tx);border-color:var(--ac);font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+input,select{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:.45rem .65rem;max-width:100%}
+label{display:block;font-size:.85rem;color:var(--mut);margin-bottom:.2rem}
+.fila{display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:.75rem}
+.tabla{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;color:var(--mut)}
+pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:.9rem;overflow:auto;max-height:60vh;font:13px/1.5 ui-monospace,Consolas,monospace;margin:.75rem 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.75rem}.dato b{display:block;font-size:.78rem;font-weight:600;color:var(--mut);text-transform:uppercase}
+.aviso{border-left:4px solid var(--rojo);background:var(--rojo2);color:var(--rojo);padding:.7rem 1rem;border-radius:8px}
+.nota{border-left:4px solid var(--ac);background:var(--ac2);padding:.7rem 1rem;border-radius:8px;font-size:.9rem}
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;padding:1rem}
+#login .caja{width:100%;max-width:400px}
+.marca{font-weight:700;font-size:1.3rem;color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}.chips button{font-size:.8rem;padding:.2rem .6rem}
+/* app */
+#app{display:grid;grid-template-columns:230px 1fr;grid-template-rows:auto 1fr;min-height:100vh}
+header{grid-column:1/3;display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.7rem 1.25rem;background:var(--card);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+nav{padding:1rem .75rem;border-right:1px solid var(--bd);background:var(--card)}
+nav a{display:block;padding:.5rem .8rem;border-radius:8px;color:var(--tx);text-decoration:none;margin-bottom:.15rem}
+nav a:hover{background:var(--bg)}nav a.act{background:var(--ac2);color:var(--ac);font-weight:600}
+main{padding:1.25rem;min-width:0;max-width:1100px}
+footer{margin-top:2rem;font-size:.8rem;color:var(--mut)}
+@media(max-width:760px){#app{grid-template-columns:1fr}header{grid-column:1}nav{display:flex;gap:.25rem;overflow-x:auto;border-right:0;border-bottom:1px solid var(--bd);padding:.5rem}nav a{white-space:nowrap;margin:0}}
+</style>
+</head>
+<body>
+
+<section id="login" hidden>
+  <div class="caja">
+    <div class="card">
+      <div class="marca">MeliHealth HIS</div>
+      <p class="mut" style="margin-top:.25rem">Sistema de información hospitalaria · versión demo</p>
+      <form id="formLogin" autocomplete="off">
+        <div style="margin:.8rem 0"><label for="usr">Usuario</label><input id="usr" style="width:100%" required></div>
+        <div style="margin-bottom:.8rem"><label for="pwd">Contraseña</label><input id="pwd" type="password" style="width:100%" required></div>
+        <div id="errLogin" class="aviso" hidden>Usuario o contraseña incorrectos.</div>
+        <button class="pri" style="width:100%;margin-top:.5rem">Ingresar</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3>Cuentas de prueba</h3>
+      <p class="mut" style="margin:0">Toca una para rellenar el usuario (clave de prueba: 1234).</p>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <div><span class="marca">MeliHealth HIS</span></div>
+    <div id="quien"></div>
+    <button id="salir">Cerrar sesión</button>
+  </header>
+  <nav id="menu"></nav>
+  <main>
+    <div id="vista"></div>
+    <footer>Versión demo en el navegador: los datos son ficticios y la seguridad real requiere un servidor.
+      <a href="#" id="reset">Restablecer datos de demo</a></footer>
+  </main>
+</div>
+
+<script src="datos.js"></script>
+<script src="his.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nombrePac = p => `${p.nombres} ${p.apellidos}`;
+const MENU = [
+  { id: 'inicio', t: 'Inicio', mod: null }, { id: 'pacientes', t: 'Pacientes', mod: 'pacientes' },
+  { id: 'agenda', t: 'Agenda', mod: 'agenda' }, { id: 'atenciones', t: 'Atenciones', mod: 'atenciones' },
+  { id: 'fhir', t: 'FHIR', mod: 'fhir' }, { id: 'hl7', t: 'HL7', mod: 'hl7' },
+  { id: 'auditoria', t: 'Auditoría', mod: 'auditoria' }, { id: 'roles', t: 'Roles y permisos', mod: 'usuarios' },
+];
+const MOD_DE = { inicio: null, pacientes: 'pacientes', ficha: 'pacientes', agenda: 'agenda', atenciones: 'atenciones', fhir: 'fhir', hl7: 'hl7', auditoria: 'auditoria', roles: 'usuarios' };
+const NOMBRE_MOD = { usuarios: 'Usuarios y roles', auditoria: 'Auditoría', pacientes: 'Pacientes', agenda: 'Agenda', atenciones: 'Atenciones', diagnosticos: 'Diagnósticos', signos_vitales: 'Signos vitales', fhir: 'FHIR', hl7: 'HL7' };
+
+function descargar(nombre, texto, tipo) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([texto], { type: tipo })); a.download = nombre; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function copiar(texto) {
+  try { await navigator.clipboard.writeText(texto); }
+  catch (e) { const t = document.createElement('textarea'); t.value = texto; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+}
+
+/* ---------- Login ---------- */
+function mostrarLogin() {
+  $('#app').hidden = true; $('#login').hidden = false;
+  $('#chips').innerHTML = DATOS.usuarios.map(u => `<button type="button" data-u="${esc(u.usuario)}" title="${esc(u.rol)}">${esc(u.usuario)}</button>`).join('');
+}
+$('#chips').addEventListener('click', e => { const b = e.target.closest('[data-u]'); if (b) { $('#usr').value = b.dataset.u; $('#pwd').focus(); } });
+$('#formLogin').addEventListener('submit', e => {
+  e.preventDefault();
+  const s = HIS.login($('#usr').value, $('#pwd').value);
+  $('#errLogin').hidden = !!s;
+  if (s) { $('#pwd').value = ''; location.hash = 'inicio'; render(); }
+});
+$('#salir').addEventListener('click', () => { HIS.logout(); location.hash = ''; render(); });
+$('#reset').addEventListener('click', e => { e.preventDefault(); if (confirm('¿Borrar lo registrado en este navegador y volver a los datos originales?')) { HIS.restablecer(); render(); } });
+
+/* ---------- Vistas ---------- */
+const VISTAS = {
+  inicio() {
+    const s = HIS.sesion, perm = HIS.MATRIZ[s.rol] || {};
+    $('#vista').innerHTML = `<h1>Hola, ${esc(s.nombre)}</h1>
+      <p class="mut">Tu rol es <b>${esc(s.rol)}</b>. Este es tu perfil de acceso:</p>
+      <div class="card tabla"><table><tr><th>Módulo</th><th>Acceso</th></tr>
+      ${Object.entries(perm).map(([m, n]) => `<tr><td>${esc(NOMBRE_MOD[m] || m)}</td><td><span class="badge b-${n}">${n}</span></td></tr>`).join('')}</table></div>
+      <div class="nota">El menú de la izquierda muestra solo los módulos permitidos para tu rol. Prueba entrar con otro usuario para ver cómo cambia.</div>`;
+  },
+
+  pacientes() {
+    const s = HIS.sesion, puedeCrear = HIS.permitido(s.rol, 'pacientes', 'escribir');
+    let q = '', pag = 0; const T = 15;
+    $('#vista').innerHTML = `<h1>Pacientes</h1>
+      <div class="fila"><div><label for="q">Buscar por nombre, RUT o ciudad</label><input id="q" style="min-width:260px"></div>
+      ${puedeCrear ? '<button class="pri" id="btnNuevo">+ Nuevo paciente</button>' : ''}</div>
+      ${puedeCrear ? `<form id="nuevo" class="card" hidden><h3>Nuevo paciente</h3><div class="fila">
+        <div><label>Nombres</label><input name="nombres" required></div><div><label>Apellidos</label><input name="apellidos" required></div>
+        <div><label>Fecha de nacimiento</label><input name="fecha_nacimiento" type="date" required></div>
+        <div><label>Sexo</label><select name="sexo" required><option value="F">F</option><option value="M">M</option></select></div>
+        <div><label>Teléfono</label><input name="telefono"></div><div><label>Correo</label><input name="email" type="email"></div>
+        <div><label>Ciudad</label><input name="ciudad"></div></div>
+        <button class="pri">Guardar</button> <button type="button" id="cancelar">Cancelar</button></form>` : ''}
+      <div class="card"><div class="tabla" id="tabla"></div><div class="fila" style="margin:.75rem 0 0;align-items:center">
+        <button id="ant">← Anterior</button><span id="info" class="mut"></span><button id="sig">Siguiente →</button></div></div>`;
+    const pintar = () => {
+      const t = q.toLowerCase();
+      const lista = HIS.datos().pacientes.filter(p => !t || `${nombrePac(p)} ${p.rut} ${p.ciudad}`.toLowerCase().includes(t));
+      const maxPag = Math.max(0, Math.ceil(lista.length / T) - 1); pag = Math.min(pag, maxPag);
+      $('#tabla').innerHTML = `<table><tr><th>ID</th><th>RUT</th><th>Paciente</th><th>Nacimiento</th><th>Sexo</th><th>Ciudad</th><th></th></tr>
+        ${lista.slice(pag * T, pag * T + T).map(p => `<tr><td>${p.id}</td><td>${esc(p.rut)}</td><td>${esc(nombrePac(p))}</td><td>${esc(p.fecha_nacimiento)}</td><td>${esc(p.sexo)}</td><td>${esc(p.ciudad)}</td><td><a href="#ficha/${p.id}">Ver ficha</a></td></tr>`).join('') || '<tr><td colspan="7" class="mut">Sin resultados</td></tr>'}</table>`;
+      $('#info').textContent = `${lista.length} pacientes · página ${pag + 1} de ${maxPag + 1}`;
+      $('#ant').disabled = pag === 0; $('#sig').disabled = pag >= maxPag;
+    };
+    $('#q').addEventListener('input', e => { q = e.target.value; pag = 0; pintar(); });
+    $('#ant').onclick = () => { pag--; pintar(); }; $('#sig').onclick = () => { pag++; pintar(); };
+    if (puedeCrear) {
+      $('#btnNuevo').onclick = () => { $('#nuevo').hidden = false; };
+      $('#cancelar').onclick = () => { $('#nuevo').hidden = true; };
+      $('#nuevo').addEventListener('submit', e => {
+        e.preventDefault();
+        const d = Object.fromEntries(new FormData(e.target));
+        const p = HIS.nuevoPaciente(d); HIS.auditar(s.usuario, `Registro Paciente ${p.id}`, 'Pacientes');
+        e.target.reset(); e.target.hidden = true; q = ''; $('#q').value = ''; pag = 999; pintar();
+      });
+    }
+    pintar();
+  },
+
+  ficha(arg) {
+    const s = HIS.sesion, id = +arg, d = HIS.datos(), p = d.pacientes.find(x => x.id === id);
+    if (!p) { $('#vista').innerHTML = '<div class="aviso">Paciente no encontrado.</div>'; return; }
+    HIS.auditar(s.usuario, `Consulta ficha paciente ${id}`, 'Pacientes');
+    const profDe = pid => (d.profesionales.find(x => x.id === pid) || {}).nombre || '—';
+    let h = `<p><a href="#pacientes">← Volver a pacientes</a></p><h1>${esc(nombrePac(p))}</h1>
+      <div class="card grid">${[['RUT', p.rut], ['Nacimiento', p.fecha_nacimiento], ['Sexo', p.sexo], ['Teléfono', p.telefono], ['Correo', p.email], ['Ciudad', p.ciudad]]
+        .map(([k, v]) => `<div class="dato"><b>${k}</b>${esc(v) || '—'}</div>`).join('')}</div>`;
+    if (HIS.permitido(s.rol, 'atenciones')) {
+      const at = d.atenciones.filter(a => a.paciente_id === id), verDx = HIS.permitido(s.rol, 'diagnosticos');
+      h += `<div class="card tabla"><h2>Atenciones</h2><table><tr><th>Fecha</th><th>Profesional</th><th>Motivo</th>${verDx ? '<th>Diagnósticos (CIE-10)</th>' : ''}</tr>
+        ${at.map(a => `<tr><td>${a.fecha}</td><td>${esc(profDe(a.profesional_id))}</td><td>${esc(a.motivo)}</td>${verDx ? `<td>${d.diagnosticos.filter(x => x.atencion_id === a.id).map(x => `${esc(x.cie10)} · ${esc(x.descripcion)}`).join('<br>') || '—'}</td>` : ''}</tr>`).join('') || '<tr><td colspan="4" class="mut">Sin atenciones</td></tr>'}</table></div>`;
+    }
+    if (HIS.permitido(s.rol, 'signos_vitales')) {
+      const sv = d.signos_vitales.filter(x => x.paciente_id === id), puede = HIS.permitido(s.rol, 'signos_vitales', 'escribir');
+      h += `<div class="card tabla"><h2>Signos vitales</h2><table><tr><th>Fecha</th><th>PA</th><th>FC</th><th>FR</th><th>Temp °C</th><th>SatO₂ %</th></tr>
+        ${sv.map(x => `<tr><td>${x.fecha}</td><td>${esc(x.pa)}</td><td>${x.fc}</td><td>${x.fr}</td><td>${x.temp}</td><td>${x.sato2}</td></tr>`).join('') || '<tr><td colspan="6" class="mut">Sin registros</td></tr>'}</table>
+        ${puede ? `<form id="formSv" class="fila" style="margin-top:1rem"><div><label>PA (ej. 120/80)</label><input name="pa" pattern="\\d{2,3}/\\d{2,3}" required size="8"></div>
+          <div><label>FC</label><input name="fc" type="number" min="20" max="250" required style="width:80px"></div><div><label>FR</label><input name="fr" type="number" min="5" max="80" required style="width:80px"></div>
+          <div><label>Temp °C</label><input name="temp" type="number" step="0.1" min="30" max="43" required style="width:90px"></div><div><label>SatO₂ %</label><input name="sato2" type="number" min="50" max="100" required style="width:90px"></div>
+          <button class="pri">Registrar</button></form>` : ''}</div>`;
+    }
+    $('#vista').innerHTML = h;
+    const f = $('#formSv');
+    if (f) f.addEventListener('submit', e => {
+      e.preventDefault(); const v = Object.fromEntries(new FormData(f));
+      HIS.nuevoSigno({ paciente_id: id, fecha: new Date().toISOString().slice(0, 10), pa: v.pa, fc: +v.fc, fr: +v.fr, temp: +v.temp, sato2: +v.sato2 });
+      HIS.auditar(s.usuario, `Registro signos vitales paciente ${id}`, 'Signos vitales');
+      render();
+    });
+  },
+
+  agenda() {
+    const d = HIS.datos();
+    $('#vista').innerHTML = `<h1>Agenda</h1><div class="fila"><div><label for="fec">Filtrar por fecha</label><input id="fec" type="date"></div><button id="limpiar">Ver todas</button></div>
+      <div class="card tabla" id="citas"></div>
+      <h2>Profesionales</h2><div class="grid">${d.profesionales.map(x => `<div class="card dato" style="margin:0"><b>${esc(x.profesion)}</b><span style="font-size:1.05rem;font-weight:600">${esc(x.nombre)}</span><br><span class="mut">${esc(x.especialidad)} · ${esc(x.rut)}</span></div>`).join('')}</div>`;
+    const pintar = () => {
+      const f = $('#fec').value, lista = d.citas.filter(c => !f || c.fecha === f);
+      $('#citas').innerHTML = `<table><tr><th>Fecha</th><th>Hora</th><th>Paciente</th><th>Profesional</th><th>Estado</th></tr>
+        ${lista.map(c => { const p = d.pacientes.find(x => x.id === c.paciente_id), pr = d.profesionales.find(x => x.id === c.profesional_id);
+          return `<tr><td>${c.fecha}</td><td>${c.hora}</td><td><a href="#ficha/${c.paciente_id}">${esc(nombrePac(p))}</a></td><td>${esc(pr.nombre)}</td><td><span class="badge b-${esc(c.estado)}">${esc(c.estado)}</span></td></tr>`; }).join('') || '<tr><td colspan="5" class="mut">Sin citas para esa fecha</td></tr>'}</table>`;
+    };
+    $('#fec').onchange = pintar; $('#limpiar').onclick = () => { $('#fec').value = ''; pintar(); };
+    pintar();
+  },
+
+  atenciones() {
+    const s = HIS.sesion, d = HIS.datos(), verDx = HIS.permitido(s.rol, 'diagnosticos');
+    $('#vista').innerHTML = `<h1>Atenciones</h1><div class="card tabla"><table><tr><th>Fecha</th><th>Paciente</th><th>Profesional</th><th>Motivo</th>${verDx ? '<th>Diagnósticos (CIE-10)</th>' : ''}</tr>
+      ${d.atenciones.map(a => { const p = d.pacientes.find(x => x.id === a.paciente_id), pr = d.profesionales.find(x => x.id === a.profesional_id);
+        return `<tr><td>${a.fecha}</td><td><a href="#ficha/${p.id}">${esc(nombrePac(p))}</a></td><td>${esc(pr.nombre)}</td><td>${esc(a.motivo)}</td>${verDx ? `<td>${d.diagnosticos.filter(x => x.atencion_id === a.id).map(x => `${esc(x.cie10)} · ${esc(x.descripcion)}`).join('<br>') || '—'}</td>` : ''}</tr>`; }).join('')}</table></div>`;
+  },
+
+  fhir() { interop('FHIR'); },
+  hl7() { interop('HL7'); },
+
+  auditoria() {
+    const lista = HIS.datos().auditoria.slice().reverse().slice(0, 150);
+    $('#vista').innerHTML = `<h1>Auditoría</h1><p class="mut">Últimos ${lista.length} eventos (incluye accesos denegados).</p><div class="card tabla"><table><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Módulo</th></tr>
+      ${lista.map(a => `<tr><td>${esc(a.fecha_hora)}</td><td>${esc(a.usuario)}</td><td>${esc(a.accion)}</td><td>${esc(a.modulo)}</td></tr>`).join('')}</table></div>`;
+  },
+
+  roles() {
+    const roles = DATOS.roles, mods = Object.keys(NOMBRE_MOD), mio = HIS.sesion.rol;
+    $('#vista').innerHTML = `<h1>Roles y permisos</h1><p class="mut">Matriz de perfilado: qué puede hacer cada rol en cada módulo. Tu rol aparece resaltado.</p>
+      <div class="card tabla"><table><tr><th>Módulo</th>${roles.map(r => `<th${r === mio ? ' style="color:var(--ac)"' : ''}>${esc(r)}</th>`).join('')}</tr>
+      ${mods.map(m => `<tr><td><b>${esc(NOMBRE_MOD[m])}</b></td>${roles.map(r => { const n = (HIS.MATRIZ[r] || {})[m];
+        return `<td${r === mio ? ' style="background:var(--ac2)"' : ''}>${n ? `<span class="badge b-${n}">${n}</span>` : '<span class="mut">—</span>'}</td>`; }).join('')}</tr>`).join('')}</table></div>
+      <div class="nota"><b>ver</b>: solo consulta · <b>escribir</b>: consulta y registra. Los permisos de escritura están activos en Pacientes (alta) y Signos vitales (registro).</div>`;
+  },
+};
+
+function interop(tipo) {
+  const d = HIS.datos(), s = HIS.sesion, esFhir = tipo === 'FHIR';
+  $('#vista').innerHTML = `<h1>Interoperabilidad ${tipo}</h1><div class="card"><div class="fila">
+    <div><label for="pac">Paciente</label><select id="pac">${d.pacientes.map(p => `<option value="${p.id}">${p.id} · ${esc(nombrePac(p))}</option>`).join('')}</select></div>
+    ${esFhir ? '' : '<div><label for="tipo">Tipo de mensaje</label><select id="tipo"><option value="ADT_A04">ADT^A04 · Registro de paciente</option><option value="ADT_A08">ADT^A08 · Actualización de datos</option><option value="ORU_R01">ORU^R01 · Resultado (signos vitales)</option></select></div>'}
+    <button class="pri" id="gen">Generar</button><button id="cop" disabled>Copiar</button><button id="des" disabled>Descargar</button></div>
+    <pre id="salida" class="mut">Elige un paciente y presiona Generar.</pre></div>`;
+  let texto = '';
+  $('#gen').onclick = () => {
+    const id = +$('#pac').value;
+    texto = esFhir ? JSON.stringify(HIS.fhirBundle(id), null, 2) : HIS.hl7($('#tipo').value, id);
+    $('#salida').textContent = texto; $('#salida').classList.remove('mut');
+    $('#cop').disabled = $('#des').disabled = false;
+    HIS.auditar(s.usuario, `Generación ${tipo} paciente ${id}`, tipo);
+  };
+  $('#cop').onclick = async () => { await copiar(texto); $('#cop').textContent = '¡Copiado!'; setTimeout(() => ($('#cop').textContent = 'Copiar'), 1500); };
+  $('#des').onclick = () => descargar(esFhir ? `paciente-${$('#pac').value}.fhir.json` : `paciente-${$('#pac').value}.hl7.txt`, texto, esFhir ? 'application/json' : 'text/plain');
+}
+
+/* ---------- Enrutador ---------- */
+function render() {
+  const s = HIS.sesion;
+  if (!s) return mostrarLogin();
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#quien').innerHTML = `<strong>${esc(s.nombre)}</strong><span class="pill">${esc(s.rol)}</span>`;
+  const [vista, arg] = (location.hash.slice(1) || 'inicio').split('/');
+  if (!(vista in MOD_DE)) { location.hash = 'inicio'; return; }
+  const activo = vista === 'ficha' ? 'pacientes' : vista;
+  $('#menu').innerHTML = MENU.filter(m => !m.mod || HIS.permitido(s.rol, m.mod))
+    .map(m => `<a href="#${m.id}" class="${m.id === activo ? 'act' : ''}">${m.t}</a>`).join('');
+  const mod = MOD_DE[vista];
+  if (mod && !HIS.permitido(s.rol, mod)) {
+    HIS.auditar(s.usuario, `Acceso denegado (${mod}:ver)`, NOMBRE_MOD[mod]);
+    $('#vista').innerHTML = `<h1>Acceso denegado</h1><div class="aviso">Tu rol (${esc(s.rol)}) no tiene permiso para el módulo «${esc(NOMBRE_MOD[mod])}». El intento quedó registrado en auditoría.</div>`;
+    return;
+  }
+  VISTAS[vista](arg);
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', render);
+render();
+</script>
+</body>
+</html>
